@@ -29,7 +29,6 @@ function shoot()
         player1.bullets[i].position.x += moveDistance * Math.cos(player1.bullets[i].angle);
         player1.bullets[i].position.y += moveDistance * Math.sin(player1.bullets[i].angle);
     }
-
 }
 
 function collisions()
@@ -37,6 +36,7 @@ function collisions()
     bullet_collision();
     player_collision();
     player_falling();
+    player_shooting();
 }
 
 function bullet_collision()
@@ -52,7 +52,22 @@ function bullet_collision()
             i--;
         }
     }
+}
 
+function player_shooting()
+{
+    //collision between bullet and walls
+    for (var i = 0; i < player1.bullets.length; i++)
+    {
+        if (Math.abs(player1.bullets[i].position.x) - Math.abs(player2.graphic.position.x) < 0.05 &&
+            Math.abs(player1.bullets[i].position.y) - Math.abs(player2.graphic.position.y) < 0.05)
+        {
+            scene.remove(player1.bullets[i]);
+            player1.bullets.splice(i, 1);
+            i--;
+            player2.dead();
+        }
+    }
 }
 
 function player_collision()
@@ -61,13 +76,23 @@ function player_collision()
     var x = player1.graphic.position.x + WIDTH / 2;
     var y = player1.graphic.position.y + HEIGHT / 2;
 
-    if ( x > WIDTH )
-        player1.graphic.position.x -= x - WIDTH;
-    if ( y < 0 )
-        player1.graphic.position.y -= y;
-    if ( y > HEIGHT )
-        player1.graphic.position.y -= y - HEIGHT;
+    if ( x > WIDTH || y > HEIGHT || y < 0 || x < 0)
+        player1.turnLeft(Math.PI);
+}
 
+function player_meet()
+{
+    //collision between player and walls
+    var x1 = player1.graphic.position.x + WIDTH / 2;
+    var y1 = player1.graphic.position.y + HEIGHT / 2;
+
+    var x2 = player2.graphic.position.x + WIDTH / 2;
+    var y2 = player2.graphic.position.y + HEIGHT / 2;
+
+    if ((Math.abs(x1) - Math.abs(x2)) < 1 && (Math.abs(x1) - Math.abs(x2)) < 1)
+        player1.decreaseLife();
+    if(player1.life <= 0)
+        player1.dead();
 }
 
 function player_falling()
@@ -83,17 +108,27 @@ function player_falling()
     for (var i = 0; i < length; i++) {
         element = noGround[i];
 
-        var tileX = (element[0]) | 0;
-        var tileY = (element[1]) | 0;
-        var mtileX = (element[0] + sizeOfTileX) | 0;
-        var mtileY = (element[1] + sizeOfTileY) | 0;
+        if (element) {
+            var tileX = (element[0]);
+            var tileY = (element[1]);
+            var mtileX = (element[0] + sizeOfTileX);
+            var mtileY = (element[1] + sizeOfTileY);
+        }
 
+        else {
+            var tileX = 0;
+            var tileY = 0;
+            var mtileX = 0;
+            var mtileY = 0;
+        }
         if ((x > tileX)
             && (x < mtileX)
             && (y > tileY) 
             && (y < mtileY))
         {
-           player1.dead();
+           player1.decreaseLife();
+           if(player1.life <= 0)
+            player1.dead();
         }
     }
 
